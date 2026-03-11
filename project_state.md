@@ -127,11 +127,11 @@ maplab-pipeline/
 │   ├── archiver.py              ← Drive upload + Notion log (Phase 5)
 │   └── pipeline.py              ← Main orchestrator (Phase 6)
 ├── docs/
-│   ├── architecture.md          ← Full system design
-│   ├── ai_handoff_guide.md      ← How to do handoffs
+│   ├── architecture.md     ← Full system design
+│   ├── ai_handoff_guide.md ← How to do handoffs
+│   ├── api_context.md      ← API shapes & expectations
+│   ├── prompts.md          ← Gemini prompt templates
 │   └── naming_rules.md     ← Image naming conventions (v1.2)
-│   ├── api_context.md           ← API shapes & expectations
-│   └── prompts.md               ← Gemini prompt templates
 ├── schemas/
 │   ├── notion_entry.schema.json ← Notion DB entry contract
 │   └── photo_record.schema.json ← Internal data shape
