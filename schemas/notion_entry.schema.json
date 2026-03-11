@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MAPLAB Notion Asset Entry",
+  "description": "Schema for each photo asset logged to Notion database",
+  "type": "object",
+  "required": ["filename", "date", "category", "drive_url"],
+  "properties": {
+    "filename": {
+      "type": "string",
+      "description": "WebP filename without extension",
+      "example": "20260310_tainan-wedding-catering_milkfish-panfry-taiwanese"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Photo capture date (EXIF)",
+      "example": "2026-03-10"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["catering", "travel", "other"],
+      "description": "Classified by Gemini Vision"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "From Sheets quote or Calendar event",
+      "example": "tainan-wedding-catering"
+    },
+    "drive_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Google Drive shareable link to WebP file"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {"type": "string"},
+      "maxItems": 3,
+      "description": "SEO keywords from Gemini",
+      "example": ["milkfish", "pan-fry", "taiwanese-cuisine"]
+    },
+    "alt_text": {
+      "type": "string",
+      "maxLength": 120,
+      "description": "SEO alt text from Gemini (English)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["待寫作", "已使用", "已發佈"],
+      "default": "待寫作"
+    },
+    "original_filename": {
+      "type": "string",
+      "description": "Original filename from Google Photos for traceability"
+    },
+    "output_size_kb": {
+      "type": "integer",
+      "description": "WebP file size in KB"
+    },
+    "source_account": {
+      "type": "string",
+      "enum": ["owner", "spouse"],
+      "description": "Which Google account this photo came from"
+    }
+  }
+}

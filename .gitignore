@@ -1,0 +1,25 @@
+# Credentials — NEVER commit these
+.env
+auth/credentials.json
+auth/token_*.json
+
+# Temp & output files
+temp/
+output/
+state/
+*.log
+failed_notion.jsonl
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
