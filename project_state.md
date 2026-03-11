@@ -129,6 +129,7 @@ maplab-pipeline/
 ├── docs/
 │   ├── architecture.md          ← Full system design
 │   ├── ai_handoff_guide.md      ← How to do handoffs
+│   └── naming_rules.md     ← Image naming conventions (v1.2)
 │   ├── api_context.md           ← API shapes & expectations
 │   └── prompts.md               ← Gemini prompt templates
 ├── schemas/
@@ -137,7 +138,8 @@ maplab-pipeline/
 └── tests/
     └── test_date_tolerance.py   ← ±1 day matching logic
 ```
-
+## 🏷️ Naming Rules
+See `docs/naming_rules.md` (v1.2, 2026-03-11) for full image naming patterns (EVT / foodphoto / SEO / AD).
 ---
 
 *Always update this file at the end of your session.*
