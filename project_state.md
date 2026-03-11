@@ -1,13 +1,15 @@
 # PROJECT STATE
-> **⚡ AI Collaborator: Read this file FIRST. Update this file LAST.**  
-> This is the single source of truth for all AI handoffs.
+⚡ AI Collaborator: Read this file FIRST. Update this file LAST.
+This is the single source of truth for all AI handoffs.
+
+> **工作規則（給所有 AI 協作者）**：每次工作前先讀此檔案 + 翻閱 Notion 監控面板與 GitHub 各模組 → 完成後更新此檔案 → Token 限制前寫下 Next Task。只跑不需要人工操作的區塊，切割小步驟，每步驟獨立 commit。
 
 ---
 
 ## 🗓️ Last Updated
-- **Date:** 2026-03-10
-- **Updated by:** Claude (Sonnet 4.6)
-- **Session type:** Project initialization
+- **Date**: 2026-03-11
+- **Updated by**: Claude (Sonnet 4.6)
+- **Session type**: Block work — no-human-required tasks
 
 ---
 
@@ -25,87 +27,91 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 | 0.3 | Python src skeleton (5 modules) | Claude | 2026-03-10 |
 | 0.4 | .env.example + requirements.txt | Claude | 2026-03-10 |
 | 0.5 | JSON schemas (Notion, Sheets) | Claude | 2026-03-10 |
+| 1.1 | GCP project created, 5 APIs enabled | Human (owner) | 2026-03-11 |
+| 1.2 | credentials.json downloaded, placed in auth/ | Human (owner) | 2026-03-11 |
+| 1.3 | Gemini API Key obtained → .env GEMINI_API_KEY filled | Human + AI Studio | 2026-03-11 |
+| 2.1 | transformer.py: read WEBP_QUALITY & MAX_IMAGE_WIDTH from .env | Claude | 2026-03-11 |
+| 2.2 | pipeline.py: wire all Phase 1-5 modules, remove TODO stubs | Claude | 2026-03-11 |
+| 2.3 | tests/test_transformer.py: unit tests for slugify, build_filename, env | Claude | 2026-03-11 |
 
 ---
 
 ## 🔄 Current Task
+**Phase 1: OAuth 2.0 + Google Photos Collector — READY TO TEST**
 
-**Phase 1: OAuth 2.0 Framework + Google Photos Collector**
-
-Status: `SKELETON WRITTEN — NEEDS CREDENTIALS TO TEST`
-
-What's done:
-- `src/auth/google_auth.py` — OAuth2 flow skeleton
-- `src/collector.py` — Google Photos API fetch skeleton
-- All modules stubbed with `TODO` markers
-
-What's needed to proceed:
-1. Owner creates Google Cloud Project → enables 5 APIs (Photos, Sheets, Calendar, Gmail, Drive)
-2. Downloads `credentials.json` → places in `./auth/` folder
-3. Runs `python src/auth/google_auth.py` to generate `token.json`
-4. Runs `python src/collector.py --test` to verify connection
-
-Blocker: **Human action required** — Google Cloud credentials setup
+- Status: Code complete, waiting for human to run OAuth flow
+- What's done: All modules wired in pipeline.py, transformer reads .env
+- What's needed to proceed:
+  1. Human runs `python src/auth/google_auth.py --account owner` → browser OAuth popup
+  2. Human runs `python src/auth/google_auth.py --account spouse` → second OAuth
+  3. Human runs `python pipeline.py --test` → verify 1 photo end-to-end
+- Blocker: Human action — OAuth browser flow (cannot be automated)
 
 ---
 
-## ⏭️ Next Task
+## ⏭️ Next Task (for next AI session)
+**After OAuth is done by human:**
 
-**Phase 2: EXIF Extraction + Gemini Vision Classification**
+Phase 1 test debugging — if `python pipeline.py --test` fails:
+- Check pipeline.log for which phase failed
+- Common issues: scope mismatch in google_auth.py, QUOTES_SHEET_RANGE wrong column
+- Fix and re-run
 
-Prerequisites: Phase 1 working (can download at least 1 photo)
-
-What to build:
-- `src/vision.py` — read EXIF (Pillow), call Gemini API
-- GPS → human location via `geopy` (Nominatim)
-- Gemini prompt returns: `{category: "catering"|"travel", keywords: ["kw1","kw2","kw3"]}`
-
-Assigned to: Next AI collaborator
+**After pipeline.py --test passes:**
+- Update this file: mark Phase 1 ✅
+- Assign: Next AI → Phase 2 vision.py prompt tuning (Gemini prompt template optimization)
 
 ---
 
 ## 📋 Full Phase Roadmap
 
-```
-Phase 0: Scaffolding          [DONE ✅]
-Phase 1: OAuth + Collector    [IN PROGRESS 🔄] → BLOCKED on credentials
-Phase 2: Vision (EXIF+Gemini) [PENDING]
-Phase 3: Cross-reference      [PENDING] — Sheets quotes + Calendar trips
-Phase 4: WebP Transform       [PENDING]
-Phase 5: Drive + Notion log   [PENDING]
-Phase 6: Integration test     [PENDING]
-```
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 0 | Scaffolding | ✅ DONE |
+| 1 | OAuth + Collector | 🔄 BLOCKED (human OAuth) |
+| 2 | Vision (EXIF+Gemini) | ⏳ PENDING |
+| 3 | Cross-reference (Sheets + Calendar) | ⏳ PENDING — Q2 unresolved |
+| 4 | WebP Transform | ✅ CODE COMPLETE (needs integration test) |
+| 5 | Drive + Notion log | ⏳ PENDING — needs NOTION_TOKEN |
+| 6 | Integration test | ⏳ PENDING |
 
 ---
 
 ## ❓ Open Questions
 
 | # | Question | Priority | Notes |
-|---|---------|---------|-------|
-| Q1 | Google Photos API still requires OAuth consent screen verification for external users — is owner's Google account Personal or Workspace? | HIGH | Affects OAuth setup complexity |
-| Q2 | MAPLAB_Quotes sheet — what are the exact column names? Date format (YYYY/MM/DD or MM/DD?)? | HIGH | Needed for Phase 3 |
-| Q3 | Notion database ID for the asset log — is there an existing DB or create new? | MEDIUM | Tokens currently exhausted |
-| Q4 | Spouse's Google account — will she authorize via the same OAuth app, or separate credentials? | MEDIUM | Affects collector design |
-| Q5 | Drive folder structure — existing or let pipeline auto-create? | LOW | Default: pipeline creates |
+|---|----------|----------|-------|
+| Q1 | Google account type: Personal or Workspace? | HIGH | Affects OAuth consent complexity |
+| Q2 | MAPLAB_Quotes sheet — exact column names? Date format (YYYY/MM/DD or MM/DD?)? | HIGH | Needed for Phase 3 crossref.py |
+| Q3 | Notion database ID for asset log — existing DB or create new? | HIGH | NOTION_DATABASE_ID still placeholder in .env |
+| Q4 | NOTION_TOKEN — obtained? | HIGH | Still secret_your_token_here in .env |
+| Q5 | Spouse's Google account — same OAuth app or separate credentials? | MEDIUM | Affects collector design |
+| Q6 | Drive folder structure — existing or let pipeline auto-create? | LOW | Default: pipeline creates |
 
 ---
 
 ## 🧠 Context for Next AI
 
-**If you are continuing Phase 1 (testing OAuth):**
-- Check `src/auth/google_auth.py` — the OAuth flow is written but untested
-- The user needs a `credentials.json` from Google Cloud Console
-- Scopes required: `photoslibrary.readonly`, `spreadsheets.readonly`, `calendar.readonly`, `gmail.readonly`, `drive.file`
+**Current .env status:**
+- MAPLAB_QUOTES_SHEET_ID: ✅ filled
+- GOOGLE_DRIVE_ARCHIVE_FOLDER_ID: ✅ filled
+- GEMINI_API_KEY: ✅ filled (2026-03-11)
+- NOTION_TOKEN: ❌ still placeholder
+- NOTION_DATABASE_ID: ❌ still placeholder
 
-**If you are starting Phase 2 (Vision):**
-- Phase 1 must be working first
-- Gemini API key goes in `.env` as `GEMINI_API_KEY`
-- Target model: `gemini-1.5-flash` (cost-efficient)
-- Prompt template is in `docs/prompts.md`
+**Code status:**
+- pipeline.py: fully wired (all phases)
+- transformer.py: reads .env for quality/width settings
+- collector.py: complete skeleton, needs credentials.json to test
+- vision.py: complete, Gemini 1.5 Flash, GPS→location, EXIF
+- crossref.py: complete skeleton, Q2 column mapping TBD
+- archiver.py: complete skeleton, needs NOTION_TOKEN
 
-**Design constraint to remember:**
-- Date matching uses ±1 day tolerance (prep photos taken day before catering event)
-- File naming pattern: `{YYYYMMDD}_{Project_Name}_{kw1}-{kw2}-{kw3}.webp`
+**Test to run first:**
+```
+python -m pytest tests/ -v
+python pipeline.py --test
+```
 
 ---
 
@@ -113,33 +119,36 @@ Phase 6: Integration test     [PENDING]
 
 ```
 maplab-pipeline/
-├── README.md                    ← Project overview
-├── project_state.md             ← YOU ARE HERE
-├── .env.example                 ← Credential template
-├── requirements.txt             ← Python dependencies
+├── README.md               ← Project overview
+├── project_state.md        ← YOU ARE HERE
+├── .env.example            ← Credential template
+├── requirements.txt        ← Python dependencies
 ├── src/
 │   ├── auth/
-│   │   └── google_auth.py       ← OAuth2 flow (Phase 1)
-│   ├── collector.py             ← Google Photos fetch (Phase 1)
-│   ├── vision.py                ← EXIF + Gemini Vision (Phase 2)
-│   ├── crossref.py              ← Sheets + Calendar lookup (Phase 3)
-│   ├── transformer.py           ← WebP conversion (Phase 4)
-│   ├── archiver.py              ← Drive upload + Notion log (Phase 5)
-│   └── pipeline.py              ← Main orchestrator (Phase 6)
+│   │   └── google_auth.py  ← OAuth2 flow (Phase 1) — needs credentials.json
+│   ├── collector.py        ← Google Photos fetch (Phase 1)
+│   ├── vision.py           ← EXIF + Gemini Vision (Phase 2)
+│   ├── crossref.py         ← Sheets + Calendar lookup (Phase 3) — Q2 TBD
+│   ├── transformer.py      ← WebP conversion (Phase 4) ✅ reads .env
+│   ├── archiver.py         ← Drive upload + Notion log (Phase 5)
+│   └── pipeline.py         ← Main orchestrator ✅ all modules wired
 ├── docs/
-│   ├── architecture.md     ← Full system design
-│   ├── ai_handoff_guide.md ← How to do handoffs
-│   ├── api_context.md      ← API shapes & expectations
-│   ├── prompts.md          ← Gemini prompt templates
-│   └── naming_rules.md     ← Image naming conventions (v1.2)
+│   ├── architecture.md
+│   ├── ai_handoff_guide.md
+│   ├── api_context.md
+│   ├── prompts.md
+│   └── naming_rules.md     ← v1.2 (EVT / foodphoto / SEO / AD patterns)
 ├── schemas/
-│   ├── notion_entry.schema.json ← Notion DB entry contract
-│   └── photo_record.schema.json ← Internal data shape
+│   ├── notion_entry.schema.json
+│   └── photo_record.schema.json
 └── tests/
-    └── test_date_tolerance.py   ← ±1 day matching logic
+    ├── test_date_tolerance.py  ← ±1 day matching logic ✅
+    └── test_transformer.py     ← slugify + build_filename ✅ (added 2026-03-11)
 ```
-## 🏷️ Naming Rules
-See `docs/naming_rules.md` (v1.2, 2026-03-11) for full image naming patterns (EVT / foodphoto / SEO / AD).
+
 ---
 
-*Always update this file at the end of your session.*
+## 🏷️ Naming Rules
+See docs/naming_rules.md (v1.2, 2026-03-11) for full image naming patterns (EVT / foodphoto / SEO / AD).
+
+Always update this file at the end of your session.
