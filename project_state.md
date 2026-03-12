@@ -11,7 +11,7 @@ This is the single source of truth for all AI handoffs.
 ## 🗓️ Last Updated
 - **Date**: 2026-03-12
 - **Updated by**: Claude (Sonnet 4.6)
-- **Session type**: Block work — ASSET_LOG Notion DB creation + NOTION_DATABASE_ID confirmed + no-delete rule added
+- **Session type**: OAuth confirmed complete → pipeline.py Phase 1 unblock
 
 ---
 
@@ -40,27 +40,34 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 | 2.7 | ASSET_LOG Notion DB created — 10 columns matching archiver.py schema | Claude | 2026-03-12 |
 | 2.8 | NOTION_DATABASE_ID confirmed: 320ab0806d5c801b9063d444cd7fbd1c | Claude | 2026-03-12 |
 | 2.9 | No-delete rule added to project_state.md and Notion | Claude | 2026-03-12 |
+| 3.1 | OAuth complete: owner token valid (token_owner.json confirmed) | Human | 2026-03-12 |
+| 3.2 | pip install -r requirements.txt complete | Human | 2026-03-12 |
 
 ---
 
 ## 🔄 Current Task
-**All .env keys now complete. Phase 1 OAuth blocked by human action.**
-- Status: All automated AI tasks complete for this phase
-- NOTION_DATABASE_ID: ✅ 320ab0806d5c801b9063d444cd7fbd1c
-- What's needed to proceed:
-  1. Human fills .env locally: NOTION_DATABASE_ID=320ab0806d5c801b9063d444cd7fbd1c
-  2. Human runs `python src/auth/google_auth.py --account owner`
-  3. Human runs `python src/auth/google_auth.py --account spouse`
-  4. Human runs `python pipeline.py --test` to verify 1 photo end-to-end
-- Blocker: Human action — OAuth browser flow (cannot be automated)
+**Phase 1 UNBLOCKED — pipeline.py collector is commented out, needs uncommenting + test**
+
+Current state of pipeline.py Phase 1 block:
+```python
+# from src.collector import collect_photos   ← STILL COMMENTED
+# photos = collect_photos(...)               ← STILL COMMENTED
+photos = []  # TODO: replace with actual collector
+```
+
+**Next AI block (no human required):**
+1. Uncomment Phase 1 collector call in pipeline.py
+2. Uncomment Phase 2-5 calls too (already wired, just uncomment)
+3. Run `python pipeline.py --test` (1 photo) → check pipeline.log
+4. Fix any import errors or API errors found in log
+5. Commit: `feat(pipeline): uncomment Phase 1-5, enable live run`
 
 ---
 
 ## ⏭️ Next Task (for next AI session)
-**After OAuth is done by human:**
-- Debug if pipeline.py --test fails → check pipeline.log
-- Review archiver.py column names match ASSET_LOG DB schema exactly
-- Verify no-delete safety in pipeline.py (original photos must never be removed)
+- Uncomment collector in pipeline.py and run --test
+- If test passes: update project_state.md, tick Phase 1 done
+- If test fails: read pipeline.log, fix errors, commit fix
 
 ---
 
@@ -75,7 +82,7 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 0 | Scaffolding | ✅ DONE |
-| 1 | OAuth + Collector | 🔄 BLOCKED (human OAuth) |
+| 1 | OAuth + Collector | ✅ OAuth done — collector commented out in pipeline.py |
 | 2 | Vision (EXIF+Gemini) | ⏳ PENDING |
 | 3 | Cross-reference (Sheets + Calendar) | ⏳ PENDING — Q2 unresolved |
 | 4 | WebP Transform | ✅ CODE COMPLETE |
@@ -87,8 +94,9 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 ## ❓ Open Questions
 | # | Question | Priority | Notes |
 |---|----------|----------|-------|
-| Q1 | Google account type: Personal or Workspace? | HIGH | Affects OAuth consent complexity |
+| Q1 | Google account type: Personal or Workspace? | HIGH | Affects OAuth consent screen |
 | Q2 | MAPLAB_Quotes sheet — exact column names? Date format (YYYY/MM/DD or MM/DD?)? | HIGH | Needed for Phase 3 crossref.py |
+| Q3 | Spouse OAuth done? token_spouse.json exist? | MEDIUM | Confirm before running --accounts spouse |
 | Q4 | Spouse's Google account — same OAuth app or separate credentials? | MEDIUM | Affects collector design |
 
 ---
@@ -101,10 +109,9 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 - NOTION_TOKEN: ✅ (see Notion API Keys 保管室)
 - NOTION_DATABASE_ID: ✅ 320ab0806d5c801b9063d444cd7fbd1c
 
-**⚠️ Human must add to local .env:**
-```
-NOTION_DATABASE_ID=320ab0806d5c801b9063d444cd7fbd1c
-```
+**Auth status:**
+- token_owner.json: ✅ exists and valid (confirmed 2026-03-12)
+- token_spouse.json: ❓ not confirmed yet
 
 **Notion API Keys 保管室:** https://www.notion.so/API-Keys-maplab-pipeline-320ab0806d5c80e0be95f298399d2c44
 
@@ -112,40 +119,50 @@ NOTION_DATABASE_ID=320ab0806d5c801b9063d444cd7fbd1c
 - URL: https://www.notion.so/320ab0806d5c801b9063d444cd7fbd1c
 - Columns: Name(title), Date(date), Category(select), Project Name(rich_text), Drive Link(url), AI Keywords(multi_select), Alt Text(rich_text), Status(select), Original Filename(rich_text), Output Size KB(number)
 
+**Key code issue to fix next:**
+pipeline.py lines ~60-70 still have collector commented out:
+```python
+# from src.collector import collect_photos
+# photos = collect_photos(...)
+photos = []  # ← remove this, uncomment above
+```
+
 **Code status:**
-- pipeline.py: fully wired (all phases)
-- transformer.py: reads .env for quality/width settings ✅
-- collector.py: complete skeleton, needs credentials.json + OAuth
-- vision.py: complete, Gemini 1.5 Flash, GPS→location, EXIF
-- crossref.py: complete skeleton, Q2 column mapping TBD
-- archiver.py: complete skeleton, NOTION_DATABASE_ID now confirmed ✅
+- pipeline.py: modules wired but Phase 1 collector still commented ⚠️
+- transformer.py: ✅ reads .env
+- collector.py: ✅ complete, auth working
+- vision.py: ✅ complete skeleton
+- crossref.py: ✅ skeleton, Q2 TBD
+- archiver.py: ✅ skeleton, NOTION_DATABASE_ID confirmed
 
 ---
 
 ## 📁 Repository File Map
 ```
 maplab-pipeline/
-├── README.md                ← Project overview
+├── README.md
 ├── project_state.md         ← YOU ARE HERE
-├── .env.example             ← Credential template
-├── requirements.txt         ← Python dependencies
+├── .env.example
+├── requirements.txt
 ├── src/
 │   ├── auth/
-│   │   └── google_auth.py   ← OAuth2 flow (Phase 1) — needs credentials.json
-│   ├── collector.py         ← Google Photos fetch (Phase 1)
-│   ├── vision.py            ← EXIF + Gemini Vision (Phase 2)
-│   ├── crossref.py          ← Sheets + Calendar lookup (Phase 3) — Q2 TBD
-│   ├── transformer.py       ← WebP conversion (Phase 4) ✅ reads .env
-│   ├── archiver.py          ← Drive upload + Notion log (Phase 5)
-│   └── pipeline.py          ← Main orchestrator ✅ all modules wired
+│   │   ├── google_auth.py   ✅ OAuth working — token_owner.json confirmed
+│   │   ├── token_owner.json ✅ (local only, gitignored)
+│   │   └── token_spouse.json ❓ (not confirmed)
+│   ├── collector.py         ✅ ready, needs uncomment in pipeline.py
+│   ├── vision.py            ✅ Gemini 1.5 Flash skeleton
+│   ├── crossref.py          ✅ skeleton, Q2 TBD
+│   ├── transformer.py       ✅ reads .env
+│   ├── archiver.py          ✅ NOTION_DATABASE_ID confirmed
+│   └── pipeline.py          ⚠️ Phase 1 collector still commented out
 ├── docs/
-│   └── naming_rules.md      ← v1.2 (EVT / foodphoto / SEO / AD patterns)
+│   └── naming_rules.md
 ├── schemas/
 │   ├── notion_entry.schema.json
 │   └── photo_record.schema.json
 └── tests/
-    ├── test_date_tolerance.py  ← ±1 day matching logic ✅
-    └── test_transformer.py     ← slugify + build_filename ✅
+    ├── test_date_tolerance.py ✅
+    └── test_transformer.py    ✅
 ```
 
 Always update this file at the end of your session.
