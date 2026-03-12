@@ -1,4 +1,4 @@
-"""
+—————"""
 Google Photos Collector Module
 Fetches new photos from Google Photos (supports two accounts).
 
