@@ -7,9 +7,9 @@ This is the single source of truth for all AI handoffs.
 ---
 
 ## 🗓️ Last Updated
-- **Date**: 2026-03-11
+- **Date**: 2026-03-12
 - **Updated by**: Claude (Sonnet 4.6)
-- **Session type**: Block work — checklist update + API Keys vault creation
+- **Session type**: Block work — ASSET_LOG Notion DB creation + NOTION_DATABASE_ID confirmed
 
 ---
 
@@ -19,7 +19,6 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 ---
 
 ## ✅ Completed Tasks
-
 | # | Task | Completed by | Date |
 |---|------|-------------|------|
 | 0.1 | Project scaffolding: README, architecture docs, project_state | Claude | 2026-03-10 |
@@ -36,18 +35,20 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 | 2.4 | Notion checklist: ticked GCP, credentials.json, .env filled | Claude | 2026-03-11 |
 | 2.5 | Notion: API Keys 保管室 page created — all keys archived | Claude | 2026-03-11 |
 | 2.6 | NOTION_TOKEN obtained from Internal integration | Claude | 2026-03-11 |
+| 2.7 | ASSET_LOG Notion DB created — 10 columns matching archiver.py schema | Claude | 2026-03-12 |
+| 2.8 | NOTION_DATABASE_ID confirmed: 320ab0806d5c801b9063d444cd7fbd1c | Claude | 2026-03-12 |
 
 ---
 
 ## 🔄 Current Task
-**Phase 1: OAuth 2.0 + Google Photos Collector — READY TO TEST**
-
-- Status: Code complete, all keys filled except NOTION_DATABASE_ID
-- What's done: All modules wired, transformer reads .env, NOTION_TOKEN filled
+**All .env keys now complete. Phase 1 OAuth blocked by human action.**
+- Status: All automated AI tasks complete for this phase
+- NOTION_DATABASE_ID: ✅ 320ab0806d5c801b9063d444cd7fbd1c
 - What's needed to proceed:
-  1. Human runs `python src/auth/google_auth.py --account owner`
-  2. Human runs `python src/auth/google_auth.py --account spouse`
-  3. Human runs `python pipeline.py --test` to verify 1 photo end-to-end
+  1. Human fills .env locally: NOTION_DATABASE_ID=320ab0806d5c801b9063d444cd7fbd1c
+  2. Human runs `python src/auth/google_auth.py --account owner`
+  3. Human runs `python src/auth/google_auth.py --account spouse`
+  4. Human runs `python pipeline.py --test` to verify 1 photo end-to-end
 - Blocker: Human action — OAuth browser flow (cannot be automated)
 
 ---
@@ -55,12 +56,11 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 ## ⏭️ Next Task (for next AI session)
 **After OAuth is done by human:**
 - Debug if pipeline.py --test fails → check pipeline.log
-- NOTION_DATABASE_ID: create a Notion DB for photo assets log, then fill .env
+- Review archiver.py column names match ASSET_LOG DB schema exactly
 
 ---
 
 ## 📋 Full Phase Roadmap
-
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 0 | Scaffolding | ✅ DONE |
@@ -68,32 +68,38 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 | 2 | Vision (EXIF+Gemini) | ⏳ PENDING |
 | 3 | Cross-reference (Sheets + Calendar) | ⏳ PENDING — Q2 unresolved |
 | 4 | WebP Transform | ✅ CODE COMPLETE |
-| 5 | Drive + Notion log | ⏳ PENDING — NOTION_DATABASE_ID needed |
+| 5 | Drive + Notion log | ✅ NOTION_DATABASE_ID ready |
 | 6 | Integration test | ⏳ PENDING |
 
 ---
 
 ## ❓ Open Questions
-
 | # | Question | Priority | Notes |
 |---|----------|----------|-------|
 | Q1 | Google account type: Personal or Workspace? | HIGH | Affects OAuth consent complexity |
 | Q2 | MAPLAB_Quotes sheet — exact column names? Date format (YYYY/MM/DD or MM/DD?)? | HIGH | Needed for Phase 3 crossref.py |
-| Q3 | NOTION_DATABASE_ID — which DB to use for photo asset log? | HIGH | Need to create or identify existing DB |
 | Q4 | Spouse's Google account — same OAuth app or separate credentials? | MEDIUM | Affects collector design |
 
 ---
 
 ## 🧠 Context for Next AI
-
-**Current .env status:**
+**Current .env status (ALL COMPLETE):**
 - MAPLAB_QUOTES_SHEET_ID: ✅ 1d2_SiEXh5JT4lzjkgHDI5JU9UWBY9TiPlC8DaxkQnKs
 - GOOGLE_DRIVE_ARCHIVE_FOLDER_ID: ✅ 1L0udpuXLy3vEbHmzBbaLqNVDut2FFpCe
 - GEMINI_API_KEY: ✅ (see Notion API Keys 保管室)
 - NOTION_TOKEN: ✅ (see Notion API Keys 保管室)
-- NOTION_DATABASE_ID: ❌ still needs to be created/identified
+- NOTION_DATABASE_ID: ✅ 320ab0806d5c801b9063d444cd7fbd1c
+
+**⚠️ Human must add to local .env:**
+```
+NOTION_DATABASE_ID=320ab0806d5c801b9063d444cd7fbd1c
+```
 
 **Notion API Keys 保管室:** https://www.notion.so/API-Keys-maplab-pipeline-320ab0806d5c80e0be95f298399d2c44
+
+**ASSET_LOG Database:**
+- URL: https://www.notion.so/320ab0806d5c801b9063d444cd7fbd1c
+- Columns: Name(title), Date(date), Category(select), Project Name(rich_text), Drive Link(url), AI Keywords(multi_select), Alt Text(rich_text), Status(select), Original Filename(rich_text), Output Size KB(number)
 
 **Code status:**
 - pipeline.py: fully wired (all phases)
@@ -101,29 +107,28 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 - collector.py: complete skeleton, needs credentials.json + OAuth
 - vision.py: complete, Gemini 1.5 Flash, GPS→location, EXIF
 - crossref.py: complete skeleton, Q2 column mapping TBD
-- archiver.py: complete skeleton, needs NOTION_DATABASE_ID
+- archiver.py: complete skeleton, NOTION_DATABASE_ID now confirmed ✅
 
 ---
 
 ## 📁 Repository File Map
-
 ```
 maplab-pipeline/
-├── README.md               ← Project overview
-├── project_state.md        ← YOU ARE HERE
-├── .env.example            ← Credential template
-├── requirements.txt        ← Python dependencies
+├── README.md                ← Project overview
+├── project_state.md         ← YOU ARE HERE
+├── .env.example             ← Credential template
+├── requirements.txt         ← Python dependencies
 ├── src/
 │   ├── auth/
-│   │   └── google_auth.py  ← OAuth2 flow (Phase 1) — needs credentials.json
-│   ├── collector.py        ← Google Photos fetch (Phase 1)
-│   ├── vision.py           ← EXIF + Gemini Vision (Phase 2)
-│   ├── crossref.py         ← Sheets + Calendar lookup (Phase 3) — Q2 TBD
-│   ├── transformer.py      ← WebP conversion (Phase 4) ✅ reads .env
-│   ├── archiver.py         ← Drive upload + Notion log (Phase 5)
-│   └── pipeline.py         ← Main orchestrator ✅ all modules wired
+│   │   └── google_auth.py   ← OAuth2 flow (Phase 1) — needs credentials.json
+│   ├── collector.py         ← Google Photos fetch (Phase 1)
+│   ├── vision.py            ← EXIF + Gemini Vision (Phase 2)
+│   ├── crossref.py          ← Sheets + Calendar lookup (Phase 3) — Q2 TBD
+│   ├── transformer.py       ← WebP conversion (Phase 4) ✅ reads .env
+│   ├── archiver.py          ← Drive upload + Notion log (Phase 5)
+│   └── pipeline.py          ← Main orchestrator ✅ all modules wired
 ├── docs/
-│   └── naming_rules.md     ← v1.2 (EVT / foodphoto / SEO / AD patterns)
+│   └── naming_rules.md      ← v1.2 (EVT / foodphoto / SEO / AD patterns)
 ├── schemas/
 │   ├── notion_entry.schema.json
 │   └── photo_record.schema.json
