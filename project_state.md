@@ -4,17 +4,19 @@ This is the single source of truth for all AI handoffs.
 
 > **工作規則（給所有 AI 協作者）**：每次工作前先讀此檔案 + 翻閱 Notion 監控面板與 GitHub 各模組 → 完成後更新此檔案 → Token 限制前寫下 Next Task。只跑不需要人工操作的區塊，切割小步驟，每步驟獨立 commit。
 
+> **🚫 絕對禁止規則**：任何情況下都不得刪除原始相片。pipeline 只做「讀取 → 轉換副本 → 上傳副本 → 記錄」，原始檔案永遠保持不動。
+
 ---
 
 ## 🗓️ Last Updated
 - **Date**: 2026-03-12
 - **Updated by**: Claude (Sonnet 4.6)
-- **Session type**: Block work — ASSET_LOG Notion DB creation + NOTION_DATABASE_ID confirmed
+- **Session type**: Block work — ASSET_LOG Notion DB creation + NOTION_DATABASE_ID confirmed + no-delete rule added
 
 ---
 
 ## 🎯 Project Goal (One Line)
-Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with SEO names, cross-referenced with catering quotes and travel itineraries, logged to Notion.
+Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with SEO names, cross-referenced with catering quotes and travel itineraries, logged to Notion. **原始相片永不刪除。**
 
 ---
 
@@ -37,6 +39,7 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 | 2.6 | NOTION_TOKEN obtained from Internal integration | Claude | 2026-03-11 |
 | 2.7 | ASSET_LOG Notion DB created — 10 columns matching archiver.py schema | Claude | 2026-03-12 |
 | 2.8 | NOTION_DATABASE_ID confirmed: 320ab0806d5c801b9063d444cd7fbd1c | Claude | 2026-03-12 |
+| 2.9 | No-delete rule added to project_state.md and Notion | Claude | 2026-03-12 |
 
 ---
 
@@ -57,6 +60,14 @@ Build a Python pipeline that auto-processes MAPLAB photos → WebP assets with S
 **After OAuth is done by human:**
 - Debug if pipeline.py --test fails → check pipeline.log
 - Review archiver.py column names match ASSET_LOG DB schema exactly
+- Verify no-delete safety in pipeline.py (original photos must never be removed)
+
+---
+
+## 🚫 SAFETY RULES (NON-NEGOTIABLE)
+1. **NEVER delete original photos** — pipeline reads → converts copy → uploads copy → logs. Source files untouched.
+2. **NEVER commit .env** — it's gitignored, contains secrets
+3. **NEVER share API Keys 保管室 URL** publicly
 
 ---
 
