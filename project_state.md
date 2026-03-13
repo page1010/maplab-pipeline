@@ -10,7 +10,7 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > > ## Last Updated
 > > - Date: 2026-03-13
 > > - - Updated by: Claude (Sonnet 4.6)
-> >   - - Session: Block 3.7 - new credentials.json downloaded, ready to re-auth with prompt=consent fix
+> >   - - Session: Block 3.8 - setup_credentials.py added (auto-copy from Downloads)
 > >    
 > >     - ---
 > >
@@ -41,20 +41,21 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > > | 3.5 | collector.py SyntaxError em-dash fixed | Claude | 2026-03-12 |
 > > | 3.6 | google_auth.py prompt=consent fix (Gemini diagnosis) | Claude | 2026-03-12 |
 > > | 3.7 | New OAuth client + credentials.json re-downloaded | Human | 2026-03-13 |
+> >  | 3.8 | auth/setup_credentials.py added (auto-copy from Downloads) | Claude | 2026-03-13 |
 > >
 > > ---
 > >
-> > ## CURRENT BLOCKER - 1 step only
+> > ## CURRENT BLOCKER - 2 commands only
 > >
 > > auth/ folder was empty (credentials.json + token_owner.json both gone).
 > > New OAuth client created: maplab-pipeline-desktop
 > > new client_id: 391140989706-8pvt19257iujvq1gd3flefn9tp3200cd.apps.googleusercontent.com
 > >
-> > ### Human must do:
-> > Step 1 - Move downloaded file to auth/:
-> >   Downloads folder -> find client_secret_391140...json
-> >   Rename to credentials.json
-> >   Move to: Desktop\maplab-pipeline\auth\credentials.json
+> > Step 1 - Auto-copy credentials.json (no manual rename/move):
+> >   cd Desktop\maplab-pipeline
+> > > >   git pull origin main
+> > > > > >   python auth/setup_credentials.py
+> > > > > > > >   (Script finds client_secret_391140...json in Downloads and copies to auth/ automatically)
 > >
 > > Step 2 - Re-auth (prompt=consent will force FULL consent screen):
 > >   cd Desktop\maplab-pipeline
@@ -86,7 +87,7 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > > 6. | Phase | Description | Status |
 > > 7. |-------|-------------|--------|
 > > 8. | 0 | Scaffolding | DONE |
-> > 9. | 1 | OAuth + Collector | BLOCKED - move credentials.json to auth/ then re-auth |
+> > 9. | 1 | OAuth + Collector | BLOCKED - run setup_credentials.py then re-auth |
 > > 10. | 2 | Vision EXIF+Gemini | PENDING |
 > > 11. | 3 | Cross-reference Sheets | PENDING Q2 unresolved |
 > > 12. | 4 | WebP Transform | CODE DONE |
@@ -100,7 +101,7 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > > 18. - token.json scopes field = client-side "wishlist", NOT server grant
 > >     - - Google was reusing old cached refresh_token (no photoslibrary scope)
 > >       - - Fix: prompt=consent in flow.run_local_server() forces full consent screen every time
-> >         - - Status: fix committed, credentials.json re-downloaded, pending re-auth test
+> >           - - Status: fix committed, setup_credentials.py added, pending re-auth test
 > >          
 > >           - ---
 > >
@@ -121,7 +122,7 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > >       - - NOTION_DATABASE_ID: 320ab0806d5c801b9063d444cd7fbd1c
 > >        
 > >         - Auth:
-> >         - - credentials.json: DOWNLOADED to Downloads/ - must be moved to auth/
+> >       - - credentials.json: run `python auth/setup_credentials.py` to auto-copy from Downloads
 > >           - - token_owner.json: MISSING - created after re-auth
 > >            
 > >             - Code:
