@@ -10,7 +10,7 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > > ## Last Updated
 > > - Date: 2026-03-13
 > > - - Updated by: Claude (Sonnet 4.6)
-> >   - - Session: Block 3.8 - setup_credentials.py added (auto-copy from Downloads)
+> >   - - Session: Block 3.9 - git pull success (use --no-edit to skip vim); next: setup_credentials.py + re-auth
 > >    
 > >     - ---
 > >
@@ -42,10 +42,10 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > > | 3.6 | google_auth.py prompt=consent fix (Gemini diagnosis) | Claude | 2026-03-12 |
 > > | 3.7 | New OAuth client + credentials.json re-downloaded | Human | 2026-03-13 |
 > >  | 3.8 | auth/setup_credentials.py added (auto-copy from Downloads) | Claude | 2026-03-13 |
+> >  | 3.9 | git pull --no-edit success; vim tip: :q! or --no-edit flag | Human | 2026-03-13 |
 > >
 > > ---
-> >
-> > ## CURRENT BLOCKER - 2 commands only
+> > ## CURRENT BLOCKER - 1 command only
 > >
 > > auth/ folder was empty (credentials.json + token_owner.json both gone).
 > > New OAuth client created: maplab-pipeline-desktop
