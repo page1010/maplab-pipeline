@@ -10,7 +10,7 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > > ## Last Updated
 > > - Date: 2026-03-13
 > > - - Updated by: Claude (Sonnet 4.6)
-> >   - - Session: Block 3.9 - git pull success (use --no-edit to skip vim); next: setup_credentials.py + re-auth
+> >   - - HANDOFF Block 3.10: local files corrupted (IndentationError). FIX=git reset --hard origin/main then re-copy credentials.json
 > >    
 > >     - ---
 > >
@@ -43,18 +43,19 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > > | 3.7 | New OAuth client + credentials.json re-downloaded | Human | 2026-03-13 |
 > >  | 3.8 | auth/setup_credentials.py added (auto-copy from Downloads) | Claude | 2026-03-13 |
 > >  | 3.9 | git pull --no-edit success; vim tip: :q! or --no-edit flag | Human | 2026-03-13 |
+> >  | 3.10 | FAILURE: GitHub web editor corrupts Python indentation - NEVER edit .py via GitHub web UI | Claude | 2026-03-13 |
 > >
 > > ---
-> > ## CURRENT BLOCKER - 1 command only
+> > ## CURRENT BLOCKER - LOCAL FILES CORRUPTED
 > >
-> > auth/ folder was empty (credentials.json + token_owner.json both gone).
-> > New OAuth client created: maplab-pipeline-desktop
-> > new client_id: 391140989706-8pvt19257iujvq1gd3flefn9tp3200cd.apps.googleusercontent.com
+> > src/auth/google_auth.py: IndentationError at line 78 (GitHub web editor corrupted it)
+> > GitHub raw version is CORRECT. git checkout did NOT fix local copy.
+> > client_id: 391140989706-8pvt19257iujvq1gd3flefn9tp3200cd.apps.googleusercontent.com
 > >
-> > Step 1 - Auto-copy credentials.json (no manual rename/move):
-> >   cd Desktop\maplab-pipeline
-> > > >   git pull origin main
-> > > > > >   python auth/setup_credentials.py
+> > ### FIX (next AI session must do this first):
+> >   Step 1: git reset --hard origin/main  (restores all corrupted .py files)
+> >   Step 2: copy credentials.json from Downloads to auth/ (file is in Downloads folder)
+> >   Step 3: python -m src.auth.google_auth --account owner
 > > > > > > > >   (Script finds client_secret_391140...json in Downloads and copies to auth/ automatically)
 > >
 > > Step 2 - Re-auth (prompt=consent will force FULL consent screen):
