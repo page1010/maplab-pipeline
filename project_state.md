@@ -8,9 +8,9 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > > ---
 > >
 > > ## Last Updated
-> > - Date: 2026-03-12
+> > - Date: 2026-03-13
 > > - - Updated by: Claude (Sonnet 4.6)
-> >   - - Session: Block 3.6 - OAuth re-auth success, collector test pending
+> >   - - Session: Block 3.7 - new credentials.json downloaded, ready to re-auth with prompt=consent fix
 > >    
 > >     - ---
 > >
@@ -39,95 +39,94 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > > | 3.3 | pipeline.py Phase 1 uncommented | Claude | 2026-03-12 |
 > > | 3.4 | collector.py owner-only default 30d | Claude | 2026-03-12 |
 > > | 3.5 | collector.py SyntaxError em-dash fixed | Claude | 2026-03-12 |
-> > | 3.6 | OAuth re-auth with photoslibrary scope - Token valid | Human | 2026-03-12 |
+> > | 3.6 | google_auth.py prompt=consent fix (Gemini diagnosis) | Claude | 2026-03-12 |
+> > | 3.7 | New OAuth client + credentials.json re-downloaded | Human | 2026-03-13 |
 > >
 > > ---
 > >
-> > ## NEXT STEP - Run collector test to confirm Phase 1 DONE
+> > ## CURRENT BLOCKER - 1 step only
 > >
-> > OAuth is complete. Token valid: True (expiry: 2026-03-12 11:25:54)
-> > Just need to verify collector can actually fetch photos.
+> > auth/ folder was empty (credentials.json + token_owner.json both gone).
+> > New OAuth client created: maplab-pipeline-desktop
+> > new client_id: 391140989706-8pvt19257iujvq1gd3flefn9tp3200cd.apps.googleusercontent.com
 > >
-> > ### Human run this command:
-> > ```
-> > cd Desktop\maplab-pipeline
-> > python -m src.collector --test --account owner
-> > ```
+> > ### Human must do:
+> > Step 1 - Move downloaded file to auth/:
+> >   Downloads folder -> find client_secret_391140...json
+> >   Rename to credentials.json
+> >   Move to: Desktop\maplab-pipeline\auth\credentials.json
 > >
-> > Expected output:
-> > ```
-> > [owner] Fetching since YYYY-MM-DD to YYYY-MM-DD
-> > [owner] API returned N items (keys: ['mediaItems', ...])
-> > [owner] Queued: some_photo.jpg
-> > Got 1 from owner
-> > Fetched 1 photos
-> >  - some_photo.jpg | YYYY-MM-DD | owner
-> > ```
+> > Step 2 - Re-auth (prompt=consent will force FULL consent screen):
+> >   cd Desktop\maplab-pipeline
+> >   python -m src.auth.google_auth --account owner
+> >   Browser opens -> click Advanced -> Go to maplab-pipeline (unsafe) -> Allow ALL
 > >
-> > If 0 photos: Check date range (may need --days 365 for old photos)
-> > If still 403: Token scope issue, paste full error output
+> > Step 3 - Verify:
+> >   python -m src.collector --test --account owner
+> >   Expected: Fetched 1 photos
 > >
 > > ---
 > >
-> > ## Next AI Task (after human pastes collector output)
+> > ## Next AI Task
 > > 1. Read this file + Notion
-> > 2. 2. Human pastes: python -m src.collector --test --account owner output
-> >    3. 3. If 1 photo fetched -> mark Phase 1 DONE, tick Notion checklist, commit
-> >       4. 4. Then implement Phase 2: vision.py EXIF + Gemini
-> >          5.    - Read EXIF from photo (GPS, camera model, datetime)
-> >                -    - Call Gemini API for scene classification
-> >                     -    - Return structured PhotoRecord with keywords + alt_text
-> >                      
-> >                          - ---
+> > 2. 2. Human pastes collector --test output
+> >    3. 3. If Fetched 1 photos -> Phase 1 DONE, commit, update Notion
+> >       4. 4. Start Phase 2: vision.py EXIF + Gemini
+> >         
+> >          5. ---
+> >         
+> >          6. ## SAFETY RULES
+> >          7. 1. NEVER delete original photos
+> >             2. 2. NEVER commit .env or credentials.json or token_*.json
+> > 3. NEVER share API Keys page URL
 > >
-> > ## SAFETY RULES
-> > 1. NEVER delete original photos
-> > 2. 2. NEVER commit .env
-> >    3. 3. NEVER share API Keys page URL
-> >      
-> >       4. ---
-> >      
-> >       5. ## Phase Roadmap
-> >       6. | Phase | Description | Status |
-> >       7. |-------|-------------|--------|
-> > | 0 | Scaffolding | DONE |
-> > | 1 | OAuth + Collector | PENDING - run collector --test to confirm |
-> > | 2 | Vision EXIF+Gemini | PENDING |
-> > | 3 | Cross-reference Sheets | PENDING Q2 unresolved |
-> > | 4 | WebP Transform | CODE DONE |
-> > | 5 | Drive + Notion log | NOTION_DATABASE_ID ready |
-| 6 | Integration test | PENDING |
-
----
-
-## Open Questions
-| # | Question | Priority |
-|---|----------|----------|
-| Q1 | Google account Personal or Workspace? | HIGH |
-| Q2 | MAPLAB_Quotes sheet column names + date format? | HIGH |
-| Q3 | Spouse OAuth done? token_spouse.json exist? | MEDIUM |
-| Q4 | Spouse same OAuth app or separate? | MEDIUM |
-
----
-
-## Key Config
-.env (all filled):
-- MAPLAB_QUOTES_SHEET_ID: 1d2_SiEXh5JT4lzjkgHDI5JU9UWBY9TiPlC8DaxkQnKs
-- - GOOGLE_DRIVE_ARCHIVE_FOLDER_ID: 1L0udpuXLy3vEbHmzBbaLqNVDut2FFpCe
-  - - GEMINI_API_KEY: see Notion API Keys page
-    - - NOTION_TOKEN: see Notion API Keys page
-    - NOTION_DATABASE_ID: 320ab0806d5c801b9063d444cd7fbd1c
-   
-    - Auth:
-    - - token_owner.json: EXISTS - re-authed with photoslibrary scope - Token valid: True
-      - - token_spouse.json: not confirmed
-       
-        - ASSET_LOG DB: https://www.notion.so/320ab0806d5c801b9063d444cd7fbd1c
-       
-        - Code status:
-        - - pipeline.py: Phase 1 live
-          - - collector.py: FIXED SyntaxError + owner-only + timezone.utc
-            - - transformer.py: reads .env
-              - - vision.py: skeleton Phase 2 TODO
-                - - crossref.py: skeleton Q2 TBD
-                  - - archiver.py: skeleton NOTION_DATABASE_ID ready
+> > 4. ---
+> >
+> > 5. ## Phase Roadmap
+> > 6. | Phase | Description | Status |
+> > 7. |-------|-------------|--------|
+> > 8. | 0 | Scaffolding | DONE |
+> > 9. | 1 | OAuth + Collector | BLOCKED - move credentials.json to auth/ then re-auth |
+> > 10. | 2 | Vision EXIF+Gemini | PENDING |
+> > 11. | 3 | Cross-reference Sheets | PENDING Q2 unresolved |
+> > 12. | 4 | WebP Transform | CODE DONE |
+> > 13. | 5 | Drive + Notion log | NOTION_DATABASE_ID ready |
+> > 14. | 6 | Integration test | PENDING |
+> >
+> > 15. ---
+> >
+> > 16. ## Root Cause Log (403 issue)
+> > 17. Gemini diagnosis 2026-03-13:
+> > 18. - token.json scopes field = client-side "wishlist", NOT server grant
+> >     - - Google was reusing old cached refresh_token (no photoslibrary scope)
+> >       - - Fix: prompt=consent in flow.run_local_server() forces full consent screen every time
+> >         - - Status: fix committed, credentials.json re-downloaded, pending re-auth test
+> >          
+> >           - ---
+> >
+> > ## Open Questions
+> > | # | Question | Priority |
+> > |---|----------|----------|
+> > | Q2 | MAPLAB_Quotes sheet column names + date format? | HIGH |
+> > | Q3 | Spouse OAuth done? token_spouse.json exist? | MEDIUM |
+> >
+> > ---
+> >
+> > ## Key Config
+> > .env (all filled):
+> > - MAPLAB_QUOTES_SHEET_ID: 1d2_SiEXh5JT4lzjkgHDI5JU9UWBY9TiPlC8DaxkQnKs
+> > - - GOOGLE_DRIVE_ARCHIVE_FOLDER_ID: 1L0udpuXLy3vEbHmzBbaLqNVDut2FFpCe
+> >   - - GEMINI_API_KEY: see Notion API Keys page
+> >     - - NOTION_TOKEN: see Notion API Keys page
+> >       - - NOTION_DATABASE_ID: 320ab0806d5c801b9063d444cd7fbd1c
+> >        
+> >         - Auth:
+> >         - - credentials.json: DOWNLOADED to Downloads/ - must be moved to auth/
+> >           - - token_owner.json: MISSING - created after re-auth
+> >            
+> >             - Code:
+> >             - - pipeline.py: Phase 1 live
+> >               - - collector.py: FIXED (owner-only, timezone.utc, no em-dash)
+> >                 - - google_auth.py: FIXED (prompt=consent)
+> >                   - - transformer.py: reads .env OK
+> >                     - - vision.py / crossref.py / archiver.py: skeletons pending
