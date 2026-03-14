@@ -1,16 +1,7 @@
-"""
-Google OAuth 2.0 Authentication Module
+""" Google OAuth 2.0 Authentication Module
 Handles token creation, refresh, and multi-account support.
 Phase: 1 (implement this first)
-Status: ACTIVE
-
-Setup instructions:
-    1. Go to https://console.cloud.google.com
-    2. Create new project -> "MAPLAB Pipeline"
-    3. Enable APIs: Photos Library, Sheets, Calendar, Gmail, Drive
-    4. Create OAuth 2.0 credentials (Desktop app)
-    5. Download credentials.json -> place in ./auth/ folder
-    6. Run: python src/auth/google_auth.py --account owner
+Status: ACTIVE - TEST BUILD: photos scope only for 500-error diagnosis
 """
 import os
 import json
@@ -22,13 +13,10 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 
 logger = logging.getLogger('maplab.auth')
 
-# All required scopes
+# DIAGNOSTIC: Only photoslibrary.readonly - testing 500 error root cause
+# Per Gemini diagnosis: multiple restricted scopes may cause OAuth 500
 SCOPES = [
     'https://www.googleapis.com/auth/photoslibrary.readonly',
-    'https://www.googleapis.com/auth/spreadsheets.readonly',
-    'https://www.googleapis.com/auth/calendar.readonly',
-    'https://www.googleapis.com/auth/gmail.readonly',
-    'https://www.googleapis.com/auth/drive.file',
 ]
 
 AUTH_DIR = Path('./auth')
@@ -75,19 +63,18 @@ def authenticate(account: str = 'owner') -> Credentials:
                 )
             logger.info(f"Starting OAuth flow for {account}...")
             flow = InstalledAppFlow.from_client_secrets_file(
-                str(CREDENTIALS_FILE), SCOPES
+                str(CREDENTIALS_FILE),
+                SCOPES
             )
-            # prompt='consent' forces Google to show the consent screen every time
-            # This ensures photoslibrary.readonly (sensitive scope) is actually granted
-            # Without this, Google reuses old token from cache - silently missing new scopes
+            # prompt='consent' forces fresh consent screen
             creds = flow.run_local_server(port=0, prompt='consent')
             logger.info(f"OAuth flow complete for {account}")
 
-    # Save token for next run
-    AUTH_DIR.mkdir(exist_ok=True)
-    with open(token_path, 'w') as f:
-        f.write(creds.to_json())
-    logger.info(f"Token saved: {token_path}")
+        # Save token for next run
+        AUTH_DIR.mkdir(exist_ok=True)
+        with open(token_path, 'w') as f:
+            f.write(creds.to_json())
+        logger.info(f"Token saved: {token_path}")
 
     return creds
 
@@ -110,7 +97,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--account', choices=['owner', 'spouse'], default='owner')
     args = parser.parse_args()
-
     print(f"Authenticating account: {args.account}")
     creds = authenticate(args.account)
     print(f"Authentication successful for {args.account}")
