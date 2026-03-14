@@ -46,7 +46,12 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 > >  | 3.10 | FAILURE: GitHub web editor corrupts Python indentation - NEVER edit .py via GitHub web UI | Claude | 2026-03-13 |
 > >
 > > ---
-> > ## CURRENT BLOCKER - LOCAL FILES CORRUPTED
+> > ## RESOLVED BLOCKER (2026-03-14)
+google_auth.py and setup_credentials.py were corrupted on GitHub main branch (not just local).
+FIX: Claude opened branch work/pipeline/claude/fix-corrupted-files via GitHub API,
+committed correct versions, opened PR. Human must: git pull after merge, then re-run OAuth.
+
+CURRENT BLOCKER - LOCAL FILES CORRUPTED
 > >
 > > src/auth/google_auth.py: IndentationError at line 78 (GitHub web editor corrupted it)
 > > GitHub raw version is CORRECT. git checkout did NOT fix local copy.
