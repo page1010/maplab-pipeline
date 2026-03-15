@@ -8,149 +8,175 @@ AI Collaborator: Read this file FIRST. Update this file LAST.
 ---
 
 ## Last Updated
-- Date: 2026-03-15 (session complete — GCP fully configured, PRs open)
+- Date: 2026-03-15 (midday — Phase 1 complete, architecture pivot, re-planning)
 - Updated by: Claude (Sonnet 4.6) — A4 Pipeline Agent
-- Session: Research + two branches + GCP maplab-v2 fully set up.
+- Session: Plan A (Picker API) confirmed working. Architecture pivoted to Google Drive as primary photo source per team recommendation.
 
 ---
 
-## ⚠️ ROOT CAUSE CONFIRMED — API DEPRECATION
+## ✅ Phase 1 SUCCESS LOG — What We Proved Works
 
-**photoslibrary.readonly was OFFICIALLY REMOVED by Google on 2025-03-31.**
-All 403 errors were caused by this. NOT a code bug. NOT a GCP config issue.
-The scope simply does not exist anymore.
+| Item | Result |
+|------|--------|
+| Picker API OAuth flow | ✅ Works — token saved, scope confirmed |
+| Session create/poll/delete | ✅ Works |
+| Photo metadata returned | ✅ filename, mimeType, width, height, createTime, type |
+| First real photo fetched | ✅ Screenshot_2026-03-10-16-23-31-060_com.google.android.youtube.jpg (image/jpeg) [PHOTO] 2400x1080 |
+| GCP maplab-v2 (Testing mode) | ✅ Stable — Picker API enabled, scope set, test user added |
 
 ---
 
-## GCP maplab-v2 — Current Status ✅ READY FOR PLAN A TEST
+## ⚠️ Architecture Pivot — Google Photos API → Google Drive
 
-| Component | Status |
-|-----------|--------|
-| Project | maplab-v2 ✅ |
-| Publishing Mode | Testing ✅ |
-| Google Photos Picker API | ✅ ENABLED |
-| OAuth Consent Screen | ✅ Created (MAPLAB Pipeline, External) |
-| Scope: photospicker.mediaitems.readonly | ✅ Added (機密範圍) |
-| Test User: pagewu1010@gmail.com | ✅ Added (1/100) |
-| OAuth Client: maplab-v2-desktop | ✅ Created (Desktop App) |
+### Why we changed
+1. Google Photos photoslibrary.readonly was **removed 2025-03-31** — no batch read possible
+2. Picker API requires user interaction every run — not suitable for automated pipeline
+3. Other project agents also hit permission walls asking user repeatedly
+4. **Team recommendation**: store photos in Google Drive folder instead, pipeline reads from there
+5. New photos will be saved directly to Google Drive folder — simpler, reliable, no API policy risk
+
+### New Data Flow
+```
+[User saves photos] → [Google Drive folder] → [collector_drive.py reads] 
+  → [vision.py: EXIF + Gemini analysis] → [transformer.py: WebP convert]
+  → [archiver.py: save to Drive output folder] → [Notion log]
+```
+
+### Old Data Flow (retired)
+```
+[Google Photos] → [Picker API / Library API] → collector.py → ...
+```
+
+---
+
+## Current Codebase State
+
+### src/ files
+
+| File | Status | Notes |
+|------|--------|-------|
+| collector.py | 🔴 Retired | Used photoslibrary.readonly (removed) |
+| collector_picker.py | ✅ Working | Picker API — for on-demand selective use |
+| collector_local.py | ✅ Working | Reads local/rclone path — for rclone users |
+| **collector_drive.py** | ❌ TODO | NEW: read from Google Drive folder |
+| vision.py | 🟡 Skeleton | EXIF + Gemini analysis — needs wiring |
+| transformer.py | 🟡 Skeleton | WebP conversion — needs wiring |
+| archiver.py | 🟡 Skeleton | Drive upload — likely needs update for new folder structure |
+| crossref.py | 🟡 Skeleton | Cross-reference with quotes sheet |
+| pipeline.py | 🟡 Skeleton | Orchestrator — needs new collector wired in |
+
+### docs/
+- ai_handoff_guide.md — agent onboarding
+- architecture.md — needs update for new flow
+- naming_rules.md
+- prompts.md
+
+### .env.example (key vars)
+- GOOGLE_DRIVE_ARCHIVE_FOLDER_ID — root output folder ✅ already planned
+- MAPLAB_QUOTES_SHEET_ID — quotes cross-ref ✅ already planned
+- GEMINI_API_KEY — AI analysis ✅ already planned
+
+---
+
+## New Phased Roadmap
+
+### Phase 1 — Photo Source ✅ DONE (pivot confirmed)
+- ✅ Proved Picker API works (backup option)
+- ✅ collector_local.py ready (rclone option)
+- ✅ Architecture decision: Google Drive as primary source
+
+### Phase 2 — Google Drive Collector (CURRENT)
+Goal: collector_drive.py reads photos from a specified Drive folder
+Tech: Google Drive API v3 (drive.readonly scope — NOT restricted, standard API)
+Scope: https://www.googleapis.com/auth/drive.readonly
+
+Steps (agent does all in cloud):
+1. Create branch work/pipeline/a4/feat-drive-collector
+2. Write src/collector_drive.py
+   - Auth via google-auth with drive.readonly scope
+   - List files in GOOGLE_DRIVE_PHOTOS_FOLDER_ID (new .env var)
+   - Filter by mimeType image/*
+   - Download to temp dir
+   - Return list of local paths + metadata
+3. Update .env.example with GOOGLE_DRIVE_PHOTOS_FOLDER_ID
+4. Update google_auth.py to support drive scope (new token file)
+5. PR + merge
+6. Human test: set folder ID in .env, run python -m src.collector_drive --test
+
+### Phase 3 — Vision Pipeline
+Goal: For each photo, extract EXIF + run Gemini analysis
+- vision.py already has skeleton
+- Needs: download URL → PIL open → EXIF → Gemini describe → return structured metadata
+
+### Phase 4 — Transform + Archive
+Goal: Convert to WebP, upload to Drive output folder
+- transformer.py: Pillow WebP conversion
+- archiver.py: upload to GOOGLE_DRIVE_ARCHIVE_FOLDER_ID
+- Naming: {date}_{original_name}_maplab.webp
+
+### Phase 5 — Notion Logging
+Goal: Log each processed photo to Notion database
+- Create Notion page per photo with metadata, Gemini description, Drive link
+
+### Phase 6 — Full Pipeline Run
+Goal: python -m src.pipeline runs end-to-end unattended
+
+---
+
+## GCP Status Summary
+
+| Project | Status | Use |
+|---------|--------|-----|
+| maplab-pipeline (OLD) | ⚠️ Production, locked | Retired — do not use |
+| maplab-v2 | ✅ Testing | Picker API client (backup use) |
+
+Drive API uses same OAuth client (maplab-v2-desktop) — drive.readonly is a standard (non-restricted) scope, no Google verification needed.
+
+---
+
+## NEXT AI TASK — START HERE
+
+**Task: Build collector_drive.py (Phase 2)**
+
+1. Create branch: work/pipeline/a4/feat-drive-collector
+2. Write src/collector_drive.py with Drive API v3
+3. Update auth/google_auth.py — add drive.readonly to supported scopes (new token: token_drive.json)
+4. Update .env.example — add GOOGLE_DRIVE_PHOTOS_FOLDER_ID
+5. Open PR, merge
+6. Update this file
+
+Human action needed after merge:
+- Set GOOGLE_DRIVE_PHOTOS_FOLDER_ID in .env (get folder ID from Drive URL)
+- python -m src.collector_drive --test
+
+---
+
+## Success Credentials (DO NOT COMMIT)
+
+| Item | Value |
+|------|-------|
+| GCP Project | maplab-v2 |
+| OAuth Client | maplab-v2-desktop |
 | Client ID | 303909948610-fo90n8v7c1u0gvh4lbakkhkcofad12va.apps.googleusercontent.com |
-| Client Secret | ****3ufQ (download JSON from GCP console to get full secret) |
-
-**To get credentials.json:**
-1. Go to: console.cloud.google.com/auth/clients?project=maplab-v2
-2. Click maplab-v2-desktop -> Download JSON (⬇ icon)
-3. Save as auth/credentials.json
-4. NEVER commit this file (already in .gitignore)
+| Token files | auth/token_picker.json, auth/token_drive.json (after Phase 2) |
+| credentials.json | auth/credentials.json (maplab-v2-desktop) |
 
 ---
 
-## Open Branches & PRs
+## Error Log (Final — Phase 1)
 
-| Branch | Plan | PR | Status |
-|--------|------|-----|--------|
-| work/pipeline/a4/feat-picker-api | Plan A: Picker API | #3 | 🟡 GCP ready, needs git pull + test |
-| work/pipeline/a4/feat-local-source | Plan B: rclone/local | #4 | 🟡 Needs rclone setup |
-
----
-
-## NEXT STEPS — Ordered by Priority
-
-### Step 1 (HUMAN — 2 minutes): Get new credentials.json
-1. Go to console.cloud.google.com/auth/clients?project=maplab-v2
-2. Click maplab-v2-desktop row -> Download JSON button (⬇)
-3. Copy downloaded file to: maplab-pipeline/auth/credentials.json
-4. (DO NOT commit it)
-
-### Step 2 (HUMAN — 1 minute): Update local repo
-```
-cd C:\Users\USER GT3490\Desktop\maplab-pipeline
-git stash         (or: git checkout -- auth/setup_credentials.py src/auth/google_auth.py)
-git pull origin main
-```
-
-### Step 3 (HUMAN — Plan A test): Run Picker API collector
-```
-del auth\token_picker.json   (if exists)
-python -m src.collector_picker --test
-```
-Browser will open -> select 1-5 photos in Google Photos UI -> script prints results.
-Expected: "Fetched: N items" where N > 0.
-
-### Step 4 (HUMAN — Plan B test, optional): rclone setup
-```
-winget install Rclone.Rclone
-rclone config
-  -> New remote -> name: gphotos -> type: google photos -> read_only: true
-rclone mount gphotos:media/by-month/ %USERPROFILE%\mnt\gphotos --vfs-cache-mode full
-```
-Add to .env: LOCAL_PHOTOS_PATH=%USERPROFILE%\mnt\gphotos
-Then: python -m src.collector_local --test
-
-### Step 5 (AGENT after test): Merge winner PR + Phase 2
-After either test passes:
-- Update this file
-- Merge winning PR (#3 or #4)
-- Start Phase 2: vision.py (WebP conversion)
-
----
-
-## Research Summary
-
-| Topic | Finding |
-|-------|---------|
-| photoslibrary.readonly | REMOVED 2025-03-31 |
-| Official replacement | Google Photos Picker API |
-| New scope | photospicker.mediaitems.readonly |
-| New endpoint | photospicker.googleapis.com/v1/sessions |
-| Alternative | rclone mount (no OAuth needed) |
-| Community | 100s of SO questions in 2025 about same 403 issue |
-
----
-
-## Completed Tasks
-| # | Task | By | Date |
-|---|------|----|------|
-| 0.1-3.14 | Previous sessions (scaffolding, OAuth debug) | Claude | 2026-03-10~14 |
-| 4.1 | Session postmortem | Claude | 2026-03-14 |
-| 4.2 | Research: API deprecation confirmed | Claude | 2026-03-15 |
-| 4.3 | Branch A: feat-picker-api | Claude | 2026-03-15 |
-| 4.4 | Branch B: feat-local-source | Claude | 2026-03-15 |
-| 4.5 | src/collector_picker.py (Plan A) | Claude | 2026-03-15 |
-| 4.6 | src/collector_local.py (Plan B) | Claude | 2026-03-15 |
-| 4.7 | PR #3 (Plan A) + PR #4 (Plan B) opened | Claude | 2026-03-15 |
-| 4.8 | GCP maplab-v2: Picker API enabled | Claude | 2026-03-15 |
-| 4.9 | GCP maplab-v2: Test user added | Claude | 2026-03-15 |
-| 4.10 | GCP maplab-v2: photospicker scope added | Claude | 2026-03-15 |
-| 4.11 | GCP maplab-v2: OAuth client created (maplab-v2-desktop) | Claude | 2026-03-15 |
-
----
-
-## Error Log (Updated)
-
-| Error ID | Error | Root Cause | Fix | Date |
-|----------|-------|-----------|-----|------|
-| error-001~004 | Various IndentationError + 403s | See previous entries | Fixed | 2026-03-13~14 |
-| error-005 | Switched GCP to Production | Mistake | New project maplab-v2 | 2026-03-14 |
-| error-006~007 | 403 "insufficient authentication scopes" | **photoslibrary.readonly REMOVED 2025-03-31** | **Migrate to Picker API (Plan A) or rclone (Plan B)** | 2026-03-15 |
-| error-008 | Cannot revert Production → Testing | GCP policy | New project | 2026-03-14 |
-| error-009 | git pull blocked | Uncommitted local files | git stash + pull | 2026-03-14 |
+| ID | Error | Root Cause | Resolution |
+|----|-------|-----------|-----------|
+| error-001~003 | IndentationError | GitHub web editor | Fixed via GitHub API PR #1 |
+| error-004~008 | 403 on photoslibrary.readonly | Scope removed 2025-03-31 + Production mode | Architecture pivot to Drive |
+| error-009 | git pull blocked | Local uncommitted files | git stash + pull |
+| error-010 | collector_picker None fields | Picker API nested structure (item.mediaFile.*) | Fixed in commit 22d4e38 |
 
 ---
 
 ## SAFETY RULES
 1. NEVER delete original photos
-2. NEVER commit .env or credentials.json or token_*.json
-3. NEVER share API Keys  
-4. NEVER edit .py files via GitHub web UI
-5. NEVER switch GCP from Testing to Production without full verification
-
----
-
-## Phase Roadmap
-| Phase | Description | Status |
-|-------|-------------|--------|
-| 0 | Scaffolding | DONE |
-| 1 | Photo Source | 🟡 GCP ready, awaiting local test |
-| 2 | Vision / WebP | Not started |
-| 3 | Notion logging | Not started |
-| 4 | Full pipeline | Not started |
+2. NEVER commit .env, credentials.json, token_*.json
+3. NEVER edit .py via GitHub web UI
+4. NEVER push directly to main — branch + PR only
+5. NEVER switch GCP to Production without full verification
