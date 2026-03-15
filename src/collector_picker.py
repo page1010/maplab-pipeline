@@ -1,5 +1,5 @@
 """
-collector_picker.py — Plan A: Google Photos Picker API
+collector_picker.py â Plan A: Google Photos Picker API
 =====================================================
 Replaces photoslibrary.readonly (deprecated 2025-03-31) with
 the new Picker API (photospicker.mediaitems.readonly).
@@ -34,7 +34,7 @@ from google.auth.transport.requests import Request
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
-# NEW scope — replaces photoslibrary.readonly which was removed 2025-03-31
+# NEW scope â replaces photoslibrary.readonly which was removed 2025-03-31
 SCOPES = ['https://www.googleapis.com/auth/photospicker.mediaitems.readonly']
 
 PICKER_BASE = 'https://photospicker.googleapis.com/v1'
@@ -173,18 +173,23 @@ def run_picker_flow(test: bool = False, limit: int = None) -> list:
         items = items[:limit]
     
     # Normalize to same format as collector_local.py for pipeline compatibility
+    # Picker API structure: item.mediaFile.{filename,mimeType,baseUrl,mediaFileMetadata}
     normalized = []
     for item in items:
-        md = item.get('mediaMetadata', {})
+        mf = item.get('mediaFile', {})
+        meta = mf.get('mediaFileMetadata', {})
         normalized.append({
             'id': item.get('id'),
-            'filename': item.get('filename'),
+            'filename': mf.get('filename'),
             'local_path': None,  # no local path for Picker API items
-            'base_url': item.get('baseUrl'),  # temporary download URL (expires)
-            'mime_type': item.get('mimeType'),
-            'created_time': md.get('creationTime'),
-            'width': md.get('width'),
-            'height': md.get('height'),
+            'base_url': mf.get('baseUrl'),  # temporary download URL (expires ~60min)
+            'mime_type': mf.get('mimeType'),
+            'type': item.get('type'),         # PHOTO or VIDEO
+            'created_time': item.get('createTime'),
+            'width': meta.get('width'),
+            'height': meta.get('height'),
+            'camera_make': meta.get('cameraMake'),
+            'camera_model': meta.get('cameraModel'),
             'source': 'picker_api',
         })
     
@@ -202,7 +207,7 @@ def main():
     print(f'\n=== Plan A (Picker API) Results ===')
     print(f'Fetched: {len(items)} items')
     for item in items[:5]:
-        print(f'  - {item["filename"]} ({item["mime_type"]})')
+        print(f'  - {item["filename"]} ({item["mime_type"]}) [{item["type"]}] {item["width"]}x{item["height"]}')
     
     if args.test:
         print('\n=> Plan A collector is working correctly.' if items else '\n=> No items selected.')
